@@ -1,0 +1,36 @@
+name: Add IP to JSON
+
+on:
+  workflow_dispatch:
+    inputs:
+      ip:
+        description: 'IP address'
+        required: true
+        type: string
+
+jobs:
+  add-ip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Update ips.json
+        run: |
+          echo "Atualizando ips.json com IP: ${{ github.event.inputs.ip }}"
+          python3 -c "
+import json
+with open('ips.json', 'r') as f:
+    ips = json.load(f)
+ips.append({'ip': '${{ github.event.inputs.ip }}'})
+with open('ips.json', 'w') as f:
+    json.dump(ips, f, indent=2)
+"
+
+      - name: Commit e push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add ips.json
+          git commit -m "Add IP ${{ github.event.inputs.ip }}"
+          git push
